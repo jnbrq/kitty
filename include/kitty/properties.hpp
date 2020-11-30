@@ -195,6 +195,71 @@ bool is_monotone( const TT& tt )
   return true;
 }
 
+enum class unateness: unsigned char {
+  binate = 0,
+  positive = 1,
+  negative = 2,
+  both = positive | negative
+};
+
+/*! \brief Returns the unateness of a given function in variable with index var_index
+  \param tt Truth table
+  \param var_index Variable in which the unateness of f is checked
+*/
+template<typename TT, typename = std::enable_if_t<is_complete_truth_table<TT>::value>>
+unateness get_unateness( const TT & tt, uint8_t var_index ) {
+  auto tt1 = cofactor0( tt, var_index );
+  auto tt2 = cofactor1( tt, var_index );
+  enum {
+    s0, // can either be pos or neg unate, not determined yet
+    s1, // can only be pos unate or binate
+    s2  // can only be neg unate or binate
+  } state = s0;
+  auto num_vars = tt.num_vars();
+  for ( auto bit = 0u; bit < (  2u << ( num_vars - 1 ) ); bit++ )
+  {
+    auto b0 = get_bit( tt1, bit );
+    auto b1 = get_bit( tt2, bit );
+    if ( b0 == b1 )
+    {
+    }
+    else if ( b0 < b1 )
+    {
+      switch (state)
+      {
+      case s0:
+        state = s1;
+        break ;
+      case s1:
+        break ;
+      case s2:
+        return unateness::binate;
+        break ;
+      }
+    }
+    else /* b0 > b1 */
+    {
+      switch (state)
+      {
+      case s0:
+        state = s2;
+        break ;
+      case s1:
+        return unateness::binate;
+        break ;
+      case s2:
+        break ;
+      }
+    }
+  }
+
+  if ( state == s2 )
+    return unateness::negative;
+  if ( state == s1 )
+    return unateness::positive;
+  return unateness::both;
+}
+
 /*! \brief Checks whether a function is selfdual
   A function is selfdual if !f(x, y, ..., z) = f(!x, !y, ..., !z)
   \param tt Truth table

@@ -133,6 +133,74 @@ TEST_F( PropertiesTest, is_monotone )
   EXPECT_EQ( counter, 168u );
 }
 
+#include <kitty/print.hpp>
+
+template <uint32_t nvars>
+void get_unateness_test()
+{
+  static_truth_table<nvars> tt;
+  uint32_t counters_positive[nvars] = { 0 };
+  uint32_t counters_negative[nvars] = { 0 };
+
+  do
+  {
+    for ( auto i = 0u; i < nvars; ++i )
+    {
+      switch ( get_unateness( tt, i ) )
+      {
+      case unateness::both:
+        counters_positive[i]++;
+        counters_negative[i]++;
+        break;
+      case unateness::positive:
+        counters_positive[i]++;
+        break ;
+      case unateness::negative:
+        counters_negative[i]++;
+        break;
+      default:
+        break;
+      };
+    }
+    next_inplace( tt );
+  } while ( !is_const0( tt ) );
+
+  if ( nvars == 3 )
+  {
+    // precalculated
+    EXPECT_EQ( counters_positive[0], 81 );
+  }
+
+  if ( nvars == 2 )
+  {
+    // precalculated
+    EXPECT_EQ( counters_positive[0], 9 );
+  }
+
+  if ( nvars == 1 )
+  {
+    // precalculated
+    EXPECT_EQ( counters_positive[0], 3 );
+  }
+
+  for ( auto i = 0u; i < nvars - 1; ++i )
+  {
+    EXPECT_EQ( counters_positive[i], counters_positive[i + 1] );
+  }
+
+  for ( auto i = 0u; i < nvars; ++i )
+  {
+    EXPECT_EQ( counters_positive[i], counters_negative[i] );
+  }
+}
+
+TEST_F( PropertiesTest, get_unateness )
+{
+  get_unateness_test<1>();
+  get_unateness_test<3>();
+  get_unateness_test<4>();
+}
+
 TEST_F( PropertiesTest, is_horn )
 {
   static_truth_table<4> tt;
