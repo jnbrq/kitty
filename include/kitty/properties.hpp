@@ -216,7 +216,7 @@ unateness get_unateness( const TT & tt, uint8_t var_index ) {
     s2  // can only be neg unate or binate
   } state = s0;
   auto num_vars = tt.num_vars();
-  for ( auto bit = 0u; bit < (  2u << ( num_vars - 1 ) ); bit++ )
+  for ( auto bit = 0u; bit < ( 2u << ( num_vars - 1 ) ); bit++ )
   {
     auto b0 = get_bit( tt1, bit );
     auto b1 = get_bit( tt2, bit );

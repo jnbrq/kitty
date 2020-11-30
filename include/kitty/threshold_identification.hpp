@@ -27,14 +27,16 @@
   \file threshold_identification.hpp
   \brief Threshold logic function identification
 
-  \author CS-472 2020 Fall students
+  \author Canberk Sönmez
 */
 
 #pragma once
 
 #include <vector>
-#include <lpsolve/lp_lib.h> /* uncomment this line to include lp_solve */
+#include <lpsolve/lp_lib.h>
 #include "traits.hpp"
+#include "properties.hpp"
+#include "isop.hpp"
 
 namespace kitty
 {
@@ -58,17 +60,101 @@ namespace kitty
 template<typename TT, typename = std::enable_if_t<is_complete_truth_table<TT>::value>>
 bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
 {
-  std::vector<int64_t> linear_form;
+  auto nvars = tt.num_vars();
+  auto fstar = tt;
+  std::vector<int64_t> linear_form(nvars + 1, 0);
+  std::vector<bool> negated(nvars, false);
 
-  /* TODO */
-  /* if tt is non-TF: */
-  return false;
+  // Step 1 - Check if the given function is unate in all of its variables
+  for ( auto i = 0u; i < nvars; ++i )
+  {
+    switch ( get_unateness( tt, i ) )
+    {
+    case unateness::binate:
+      return false;
+    case unateness::negative:
+      flip_inplace(fstar, i);
+      negated[i] = true;
+      break;
+    default:
+      break;
+    }
+  }
 
-  /* if tt is TF: */
-  /* push the weight and threshold values into `linear_form` */
+  // Step 2 - Create conditions
+
+  // to speed up the ILP part, we can work on the irredundant SOP
+  // representations
+  std::vector<cube> fcubes = isop(fstar);
+  std::vector<cube> fstarcubes = isop(unary_not(fstar));
+
+  auto *lp = make_lp( 0, nvars + 1 );
+
+  struct _deleter {
+    lprec *lp = nullptr;
+    ~_deleter() noexcept {
+      delete_lp( lp );
+    }
+  } deleter{ lp };
+
+  for ( auto i = 1u; i <= nvars + 1; ++i )
+  {
+    set_int( lp, i, TRUE );
+  }
+
+  std::vector<REAL> row(nvars + 2, 0);
+  row[nvars + 1] = -1; // threshold
+  REAL *rowp = &row[0];
+
+  for ( auto &c: fcubes )
+  {
+    for ( auto i = 0u; i < nvars; ++i )
+    {
+      if ( c.get_mask(i) && c.get_bit(i) )
+        row[i + 1] = 1;
+      else
+        row[i + 1] = 0;
+    }
+
+    add_constraint(lp, rowp, GE, 0);
+  }
+
+  for ( auto &c: fstarcubes )
+  {
+    for ( auto i = 0u; i < nvars; ++i )
+    {
+      if ( !c.get_mask(i) || c.get_bit(i) )
+        row[i + 1] = 1;
+      else
+        row[i + 1] = 0;
+    }
+
+    add_constraint(lp, rowp, LE, -1);
+  }
+
+  for ( auto i = 1u; i <= nvars + 1; ++i )
+  {
+    row[i] = 1;
+  }
+
+  set_obj_fn( lp, rowp );
+
+  if ( solve( lp ) == INFEASIBLE )
+    return false;
+
   if ( plf )
   {
-    *plf = linear_form;
+    REAL *sol;
+    get_ptr_variables( lp, &sol );
+
+    for ( auto i = 0u; i < nvars + 1; ++i )
+      linear_form[i] = sol[i];
+    
+    for ( auto i = 0u; i < nvars; ++i )
+      if ( negated[i] )
+        linear_form.back() -= linear_form[i];
+    
+    plf->swap(linear_form);
   }
   return true;
 }
