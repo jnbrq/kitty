@@ -91,7 +91,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   auto *lp = make_lp( 0, nvars + 1 );
 
   set_verbose( lp, 1 );
-
+  
   struct _deleter {
     lprec *lp = nullptr;
     ~_deleter() noexcept {
