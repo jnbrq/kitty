@@ -90,6 +90,8 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
 
   auto *lp = make_lp( 0, nvars + 1 );
 
+  set_verbose( lp, 1 );
+
   struct _deleter {
     lprec *lp = nullptr;
     ~_deleter() noexcept {
@@ -151,8 +153,10 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
       linear_form[i] = sol[i];
     
     for ( auto i = 0u; i < nvars; ++i )
-      if ( negated[i] )
+      if ( negated[i] ) {
         linear_form.back() -= linear_form[i];
+        linear_form[i] = -linear_form[i];
+      }
     
     plf->swap(linear_form);
   }
