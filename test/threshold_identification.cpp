@@ -93,3 +93,28 @@ TEST( TFI_test, TF_majority9 )
   }
 }
 
+template <uint8_t nvars>
+void perform_exhaustive_test_1()
+{
+  static_truth_table<nvars> tt, tt2;
+
+  do
+  {
+    std::vector<int64_t> lf;
+    if ( is_threshold( tt, &lf ) )
+    {
+      create_threshold( tt2, std::move(lf) );
+      EXPECT_EQ( tt, tt2 );
+    }
+    next_inplace( tt );
+  } while ( !is_const0( tt ) );
+}
+
+TEST( TFI_test, TF_exhaustive_1 )
+{
+  perform_exhaustive_test_1<1>();
+  perform_exhaustive_test_1<2>();
+  perform_exhaustive_test_1<3>();
+  perform_exhaustive_test_1<4>();
+}
+

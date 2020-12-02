@@ -133,8 +133,6 @@ TEST_F( PropertiesTest, is_monotone )
   EXPECT_EQ( counter, 168u );
 }
 
-#include <kitty/print.hpp>
-
 template <uint32_t nvars>
 void get_unateness_test()
 {
