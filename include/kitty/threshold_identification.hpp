@@ -85,8 +85,8 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
 
   // to speed up the ILP part, we can work on the irredundant SOP
   // representations
-  std::vector<cube> fcubes = isop(fstar);
-  std::vector<cube> fstarcubes = isop(unary_not(fstar));
+  std::vector<cube> fstarcubes = isop(fstar);
+  std::vector<cube> fstarnotcubes = isop(unary_not(fstar));
 
   auto *lp = make_lp( 0, nvars + 1 );
 
@@ -108,7 +108,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   row[nvars + 1] = -1; // threshold
   REAL *rowp = &row[0];
 
-  for ( auto &c: fcubes )
+  for ( auto &c: fstarcubes )
   {
     for ( auto i = 0u; i < nvars; ++i )
     {
@@ -121,7 +121,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     add_constraint(lp, rowp, GE, 0);
   }
 
-  for ( auto &c: fstarcubes )
+  for ( auto &c: fstarnotcubes )
   {
     for ( auto i = 0u; i < nvars; ++i )
     {
