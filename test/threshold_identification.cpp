@@ -93,21 +93,34 @@ TEST( TFI_test, TF_majority9 )
   }
 }
 
+#include <iostream>
+
+static std::ostream &info() {
+  return ( std::cerr << "[          ] " );
+}
+
+
 template <uint8_t nvars>
 void perform_exhaustive_test_1()
 {
   static_truth_table<nvars> tt, tt2;
+  int i = 0;
+  int j = 0;
 
   do
   {
     std::vector<int64_t> lf;
     if ( is_threshold( tt, &lf ) )
     {
+      ++i;
       create_threshold( tt2, std::move(lf) );
       EXPECT_EQ( tt, tt2 );
     }
     next_inplace( tt );
+    ++j;
   } while ( !is_const0( tt ) );
+
+  info() << "Out of " << j << " functions, " << i << " are TF. (nvars = " << (int)nvars << ")\n";
 }
 
 TEST( TFI_test, TF_exhaustive_1 )
@@ -118,3 +131,34 @@ TEST( TFI_test, TF_exhaustive_1 )
   perform_exhaustive_test_1<4>();
 }
 
+TEST( TFI_test, TF_exhaustive_2 )
+{
+  // for three variables, and a fixed threshold, find
+  // all possible threshold functions and test if they
+  // are recognized
+  constexpr int t = 3;
+
+  for ( int w1 = -3*t; w1 <= 3*t; ++w1 )
+  {
+    for ( int w2 = -3*t; w2 <= 3*t; ++w2 )
+    {
+      for ( int w3 = -3*t; w3 <= 3*t; ++w3 )
+      {
+        static_truth_table<3> tt1, tt2;
+        std::vector<int64_t> lf;
+
+        create_threshold( tt1, std::vector<int64_t>{ w1, w2, w3, t } );
+        EXPECT_TRUE( is_threshold( tt1, &lf ) );
+
+        create_threshold( tt2, lf );
+        EXPECT_EQ( tt1, tt2 );
+
+        create_threshold( tt1, std::vector<int64_t>{ w1, w2, w3, -t } );
+        EXPECT_TRUE( is_threshold( tt1, &lf ) );
+
+        create_threshold( tt2, lf );
+        EXPECT_EQ( tt1, tt2 );
+      }
+    }
+  }
+}
