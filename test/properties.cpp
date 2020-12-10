@@ -194,6 +194,39 @@ void get_unateness_test()
 
 TEST_F( PropertiesTest, get_unateness )
 {
+  // Simple tests
+
+  {
+    static_truth_table<2> tt;
+
+    create_from_hex_string( tt, "6" ); // XOR
+
+    EXPECT_EQ( get_unateness( tt, 0 ), unateness::binate );
+    EXPECT_EQ( get_unateness( tt, 1 ), unateness::binate );
+  }
+
+  {
+    static_truth_table<3> tt;
+
+    create_from_hex_string( tt, "70" ); // x2 ~x1 + x2 ~x0
+
+    EXPECT_EQ( get_unateness( tt, 0 ), unateness::negative );
+    EXPECT_EQ( get_unateness( tt, 1 ), unateness::negative );
+    EXPECT_EQ( get_unateness( tt, 2 ), unateness::positive );
+  }
+
+  {
+    static_truth_table<3> tt;
+
+    create_from_hex_string( tt, "8f" ); // ~x2 + x1 x0
+
+    EXPECT_EQ( get_unateness( tt, 0 ), unateness::positive );
+    EXPECT_EQ( get_unateness( tt, 1 ), unateness::positive );
+    EXPECT_EQ( get_unateness( tt, 2 ), unateness::negative );
+  }
+
+  // Exhaustive Tests
+
   get_unateness_test<1>();
   get_unateness_test<3>();
   get_unateness_test<4>();
