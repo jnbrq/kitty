@@ -81,13 +81,13 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     }
   }
 
-  // Step 2 - Create conditions and solve
-
   // to speed up the ILP part, we can work on the irredundant SOP
   // representations
   std::vector<cube> fstarcubes = isop(fstar);
   std::vector<cube> fstarnotcubes = isop(unary_not(fstar));
 
+  // Step 2 - Create conditions and solve
+  
   auto *lp = make_lp( 0, nvars + 1 );
 
   set_verbose( lp, 1 );
