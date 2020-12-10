@@ -81,7 +81,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     }
   }
 
-  // Step 2 - Create conditions
+  // Step 2 - Create conditions and solve
 
   // to speed up the ILP part, we can work on the irredundant SOP
   // representations
@@ -146,6 +146,8 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
 
   if ( plf )
   {
+    // Step 3 (optional): Recover the linear form
+
     REAL *sol;
     get_ptr_variables( lp, &sol );
 
