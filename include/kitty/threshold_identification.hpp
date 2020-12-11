@@ -86,8 +86,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   std::vector<cube> fstarcubes = isop(fstar);
   std::vector<cube> fstarnotcubes = isop(unary_not(fstar));
 
-  // Step 2 - Create conditions and solve
-  
+  // Step 2 - Create constraints, objective and solve
   auto *lp = make_lp( 0, nvars + 1 );
 
   set_verbose( lp, 1 );
